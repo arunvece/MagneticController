@@ -10,7 +10,7 @@ format compact
 close all
 clear all
 clc
-videoName = 'output_new.avi';
+videoName = 'output3.ogg';
 display(['trying to load ', videoName])
 vidBead = VideoReader(videoName);
 numframes = vidBead.NumberOfFrames;
@@ -38,8 +38,8 @@ error_xy = [0,0];
 %ballCMDpos = [xCMD,yCMD];
 %B2 = createMask(e,h_im);
 
-%sx = 333;
-%sy = 208
+sx = 0;
+sy = 0;
 
 for frame = 1:numframes
     try
@@ -48,10 +48,19 @@ for frame = 1:numframes
     catch e
         display (e);
     end
-    
-    imshow(I);
-    level = graythresh(I);
-    BW = im2bw(I,.7);
+   if (frame>5)
+            e = imellipse(gca, [sx sy 50 50]);
+            %h_im = = imshow(I)
+            %level = graythresh(I);
+            %BW2 = im2bw(I,.7);
+            %h_im = BW2;
+            BW = createMask(e,I);
+              
+    else
+            level = graythresh(I);
+            BW = im2bw(I,.7);
+    end 
+        
         
         %d = imdistline;  %Run this to find object's diameter is about 20.
         %Divide by two to get radius
@@ -68,7 +77,9 @@ for frame = 1:numframes
         else
             display('using old data')
         end
-               
+        sx = centers(1,1);
+        sy = centers(1,2);
+        
         error_gain = Controller(error_xy);
         
         I_CMD_x = error_gain(1,1);
@@ -81,13 +92,14 @@ for frame = 1:numframes
      %display e;
      %display "Error found";
      %end
-     %imshow(I)
+     imshow(I)
      %set(h,'CData',I);
      h = viscircles(centers,radii);
      title(['Frame ', num2str(frame), ', Centroid: [',num2str(centers(1,1)),',',num2str(centers(1,2)),']']);
      drawnow();
      frame = frame+1;
-     flag=1;
+     %e = imellipse(gca, [sx sy 96 89]);
+     %flag=1;
 end
  
 figure(1);
