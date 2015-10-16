@@ -20,8 +20,9 @@ frame = 1;
 %a = arduino('/dev/ttyACM0','Mega2560'); %Ccreate object link for arduino
 %controller; not needed for dummy testing
 
-%numframes = 50;
+numframes = 210;
 xyCMD = [400,400];
+rect = [0 0 480 864];
 %yCMD = 300;
 I_MAX = 20;
 %I_CMD = 0;
@@ -38,8 +39,9 @@ error_xy = [0,0];
 %ballCMDpos = [xCMD,yCMD];
 %B2 = createMask(e,h_im);
 
-sx = 0;
-sy = 0;
+%rROI = 25; %radius of ROI
+sx = 400;
+sy = 400;
 
 for frame = 1:numframes
     try
@@ -49,16 +51,32 @@ for frame = 1:numframes
         display (e);
     end
    if (frame>5)
-            e = imellipse(gca, [sx sy 50 50]);
-            %h_im = = imshow(I)
-            %level = graythresh(I);
-            %BW2 = im2bw(I,.7);
-            %h_im = BW2;
-            BW = createMask(e,I);
-              
+            %e = imellipse(gca, [sx sy 50 50]);
+            %h_im = imshow(I);
+            %h = imrect(gca, [(sx-50) (sy-50) 100 100]);
+            %mask = createMask(h,h_im);
+            Ymin = max(100,round(sy - 100));
+            Ymax = max(400,round(sy + 200));
+            Xmin = max(100,round(sx - 100));
+            Xmax = max(400,round(sx + 200));
+            level = graythresh(I);
+            BW = im2bw(I,0.7);
+            imshow(BW((Ymin:Ymax),(Xmin:Xmax)));
+            %BW2 = BW((Ymin:Ymax),(Xmin:Xmax));
+            %I2 = imcrop(I,h);
+            %level = graythresh(I2);
+            %BW = im2bw(I2,.7);
+            %imshow(I);  
+            
     else
             level = graythresh(I);
             BW = im2bw(I,.7);
+            Xmin = 1;
+            Xmax = 850;
+            Ymin = 1;
+            Ymax = 480;
+            imshow(BW((Ymin:Ymax),(Xmin:Xmax)));
+            
     end 
         
         
@@ -70,15 +88,18 @@ for frame = 1:numframes
         % thanks: http://www.mathworks.com/help/images/examples/detect-and-measure-circular-objects-in-an-image.html?refresh=true
         %[centers, radii] = imfindcircles(I,[7
         %10],'ObjectPolarity','dark','Sensitivity',0.95); Camera Feed only
-        [centers, radii] = imfindcircles(BW,[7 12],'ObjectPolarity','dark','Sensitivity',0.93);
+        [centers, radii] = imfindcircles(BW((Ymin:Ymax),(Xmin:Xmax)),[7 15],'ObjectPolarity','dark','Sensitivity',0.93);
         %Motor Controller
         if numel(centers)>1
             error_xy = xyCMD - centers(1,1:2);  %find error in position
+            sx = centers(1,1);
+            sy = centers(1,2);
+            %rect = [(sx-rROI) (sy-rROI) (sx+rROI) (sy+rROI)]; 
         else
             display('using old data')
         end
-        sx = centers(1,1);
-        sy = centers(1,2);
+        %sx = centers(1,1);
+        %sy = centers(1,2);
         
         error_gain = Controller(error_xy);
         
@@ -92,9 +113,9 @@ for frame = 1:numframes
      %display e;
      %display "Error found";
      %end
-     imshow(I)
+     %imshow(I2);
      %set(h,'CData',I);
-     h = viscircles(centers,radii);
+     h = viscircles(centers,radii); %need to scale?
      title(['Frame ', num2str(frame), ', Centroid: [',num2str(centers(1,1)),',',num2str(centers(1,2)),']']);
      drawnow();
      frame = frame+1;
@@ -108,3 +129,4 @@ plot(ballpos(:,1), ballpos(:,2),'.-',...
 legend('Path','start','end');
 xlabel('x, (px)');
 ylabel('y, (px)');
+
