@@ -1,7 +1,7 @@
 function [error_gain] = Controller(error_xy)
 %PID Controller used for tracking program
 %   Detailed explanation goes here
-Kp = 1; %Prop term
+Kp = 0.01; %Prop term
 Ki = 1; %Int term
 Kd = 0; %Der term
 %error_mem = 0;
