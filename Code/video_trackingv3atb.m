@@ -1,3 +1,4 @@
+function video_trackingv3atb
 %ways to speed it up:
 % Add a ROI --
 % change parameters on imfindcircles
@@ -5,29 +6,30 @@
 % blob detector, tuned to find circles of a given size, may work)
 % I'm not finding the end of the video correctly
 
+%TODO:  ROI should grow if the detection fails or if the velocity is large
+% my velocity estimator is horrible
+%  imfindcircles is still too slow -- 0.0233s per frame.
+% we can try just finding the average position of the dark spot.
+
 addpath('../Test Videos/')
 format compact
 close all
 clear all
 clc
-videoName = 'output3.mp4'% 'output3.ogg';
+videoName = 'output3.mp4';% 'output3.ogg';
 display(['trying to load ', videoName])
 vidBead = VideoReader(videoName);
 numframes = vidBead.NumberOfFrames;
-frame = 1;
 
 %obj = imaq.VideoDevice('dcam',1,'F7_Y8_640x480_mode0'); %camera link and object 
 %a = arduino('/dev/ttyACM0','Mega2560'); %Ccreate object link for arduino
 %controller; not needed for dummy testing
 
-numframes = 210;
+%numframes = 50;
 xyCMD = [400,400];
-rect = [0 0 480 864];
 %yCMD = 300;
-I_MAX = 20;
 %I_CMD = 0;
 %I_OUT = 0;
-error_gain = [0,0];
 
 ballpos = zeros(numframes,2);
 error_xy = [0,0];
@@ -39,11 +41,14 @@ error_xy = [0,0];
 %ballCMDpos = [xCMD,yCMD];
 %B2 = createMask(e,h_im);
 
-%rROI = 25; %radius of ROI
-sx = 400;
-sy = 400;
 
 % Ball is being tracked by colour intensity. Light colours are filtered out, and avareage of X and Y coordinates of the rest makes the output. Only region covered by blue square (generated with X and Y coordinates from previous frame) is taken into calculations for better performance
+
+ballRad= 9.5;
+
+centers = [327.3083  200.2870];%hardcoded initial position.
+vel = [0,0]; %simple velocity estimate
+
 
 for frame = 1:numframes
     try
@@ -52,35 +57,10 @@ for frame = 1:numframes
     catch e
         display (e);
     end
-   if (frame>5)
-            %e = imellipse(gca, [sx sy 50 50]);
-            %h_im = imshow(I);
-            %h = imrect(gca, [(sx-50) (sy-50) 100 100]);
-            %mask = createMask(h,h_im);
-            Ymin = max(100,round(sy - 100));
-            Ymax = max(400,round(sy + 200));
-            Xmin = max(100,round(sx - 100));
-            Xmax = max(400,round(sx + 200));
-            level = graythresh(I);
-            BW = im2bw(I,0.7);
-            imshow(BW((Ymin:Ymax),(Xmin:Xmax)));
-            %BW2 = BW((Ymin:Ymax),(Xmin:Xmax));
-            %I2 = imcrop(I,h);
-            %level = graythresh(I2);
-            %BW = im2bw(I2,.7);
-            %imshow(I);  
-            
-    else
-            level = graythresh(I);
-            BW = im2bw(I,.7);
-            Xmin = 1;
-            Xmax = 850;
-            Ymin = 1;
-            Ymax = 480;
-            imshow(BW((Ymin:Ymax),(Xmin:Xmax)));
-            
-    end 
-        
+
+    
+    [ym,yM,xm,xM] = setROI(centers+1/2*vel);
+    BW = im2bw(I(ym:yM,xm:xM,:),.7);%BW=im2bw(I,.7);
         
         %d = imdistline;  %Run this to find object's diameter is about 20.
         %Divide by two to get radius
@@ -90,19 +70,17 @@ for frame = 1:numframes
         % thanks: http://www.mathworks.com/help/images/examples/detect-and-measure-circular-objects-in-an-image.html?refresh=true
         %[centers, radii] = imfindcircles(I,[7
         %10],'ObjectPolarity','dark','Sensitivity',0.95); Camera Feed only
-        [centers, radii] = imfindcircles(BW((Ymin:Ymax),(Xmin:Xmax)),[7 15],'ObjectPolarity','dark','Sensitivity',0.93);
+        centersp = centers; %update previous position
+        [centers, radii] = imfindcircles(BW,[ballRad-2.5 ballRad+2.5],'ObjectPolarity','dark','Sensitivity',0.93);
+        centers = [xm,ym]+centers;  %add ROI offset
+        vel = 1/3*(vel+2*(centers-centersp)); %simple velocity estimator
         %Motor Controller
         if numel(centers)>1
             error_xy = xyCMD - centers(1,1:2);  %find error in position
-            sx = centers(1,1);
-            sy = centers(1,2);
-            %rect = [(sx-rROI) (sy-rROI) (sx+rROI) (sy+rROI)]; 
         else
             display('using old data')
         end
-        %sx = centers(1,1);
-        %sy = centers(1,2);
-        
+
         error_gain = Controller(error_xy);
         
         I_CMD_x = error_gain(1,1);
@@ -115,12 +93,13 @@ for frame = 1:numframes
      %display e;
      %display "Error found";
      %end
-     %imshow(I2);
+     imshow(I)
      %set(h,'CData',I);
-     h = viscircles(centers,radii); %need to scale?
+     viscircles( centers,radii);
+     rH = rectangle('Position',[xm,ym,xM-xm,yM-ym]);
+     set(rH,'EdgeColor','b');
      title(['Frame ', num2str(frame), ', Centroid: [',num2str(centers(1,1)),',',num2str(centers(1,2)),']']);
      drawnow();
-     frame = frame+1;
      %e = imellipse(gca, [sx sy 96 89]);
      %flag=1;
 end
@@ -128,7 +107,21 @@ end
 figure(1);
 plot(ballpos(:,1), ballpos(:,2),'.-',...
     ballpos(1,1), ballpos(1,2),'go', ballpos(end,1), ballpos(end,2),'rx');
+axis equal  %necessary since this is x and y position
 legend('Path','start','end');
 xlabel('x, (px)');
 ylabel('y, (px)');
 
+
+function [ym,yM,xm,xM] = setROI(centers)
+yR = 480; %height of image
+xR = 864; %width of image
+% centers = 327.3083  200.2870 for ball 1
+rROI = 30; %radius of ROI
+ym = max(1,floor(centers(2) - rROI));
+yM = min(yR,ceil(centers(2) + rROI));
+xm = max(1,floor(centers(1) - rROI));
+xM = min(xR,ceil(centers(1) + rROI));
+end
+
+end
