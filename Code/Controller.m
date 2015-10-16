@@ -18,6 +18,6 @@ error_y = error_xy(1,2);
  %PID(i+1)  = Kp*Prop(i) + Ki*I(i+1)+ Kd*Der(i); % the three PID terms
     
  error_gain(1,1)  = Kp*error_x;
- display (error_gain(1,1));
+% display (error_gain(1,1));
  error_gain(1,2)  = Kp*error_y;
- display (error_gain(1,2));
+% display (error_gain(1,2));

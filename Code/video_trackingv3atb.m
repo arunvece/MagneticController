@@ -16,7 +16,7 @@ format compact
 close all
 clear all
 clc
-videoName = 'output3.mp4';% 'output3.ogg';
+videoName = 'output_new.avi'%'output3.mp4';% 'output3.ogg';
 display(['trying to load ', videoName])
 vidBead = VideoReader(videoName);
 numframes = vidBead.NumberOfFrames;
@@ -45,8 +45,11 @@ error_xy = [0,0];
 % Ball is being tracked by colour intensity. Light colours are filtered out, and avareage of X and Y coordinates of the rest makes the output. Only region covered by blue square (generated with X and Y coordinates from previous frame) is taken into calculations for better performance
 
 ballRad= 9.5;
+  I = im2double(read(vidBead,1));
+BW=im2bw(I,.7);
+centers = imfindcircles(BW,[ballRad-2.5 ballRad+2.5],'ObjectPolarity','dark','Sensitivity',0.93);
 
-centers = [327.3083  200.2870];%hardcoded initial position.
+%[327.3083  200.2870];%hardcoded initial position.
 vel = [0,0]; %simple velocity estimate
 
 
@@ -72,15 +75,22 @@ for frame = 1:numframes
         %10],'ObjectPolarity','dark','Sensitivity',0.95); Camera Feed only
         centersp = centers; %update previous position
         [centers, radii] = imfindcircles(BW,[ballRad-2.5 ballRad+2.5],'ObjectPolarity','dark','Sensitivity',0.93);
-        centers = [xm,ym]+centers;  %add ROI offset
-        vel = 1/3*(vel+2*(centers-centersp)); %simple velocity estimator
+        
+
+
+        
+ 
         %Motor Controller
         if numel(centers)>1
             error_xy = xyCMD - centers(1,1:2);  %find error in position
         else
             display('using old data')
+            centers = centersp;
         end
-
+                centers = centers(1,:);
+               centers = [xm,ym]+centers;  %add ROI offset
+        vel = 1/3*(vel+2*(centers-centersp)); %simple velocity estimator
+        
         error_gain = Controller(error_xy);
         
         I_CMD_x = error_gain(1,1);
@@ -93,17 +103,17 @@ for frame = 1:numframes
      %display e;
      %display "Error found";
      %end
-     imshow(I)
+   %  imshow(I)
      %set(h,'CData',I);
-     viscircles( centers,radii);
-     rH = rectangle('Position',[xm,ym,xM-xm,yM-ym]);
-     set(rH,'EdgeColor','b');
-     title(['Frame ', num2str(frame), ', Centroid: [',num2str(centers(1,1)),',',num2str(centers(1,2)),']']);
-     drawnow();
+   %  viscircles( centers,radii);
+   %  rH = rectangle('Position',[xm,ym,xM-xm,yM-ym]);
+    % set(rH,'EdgeColor','b');
+   %  title(['Frame ', num2str(frame), ', Centroid: [',num2str(centers(1,1)),',',num2str(centers(1,2)),']']);
+    % drawnow();
      %e = imellipse(gca, [sx sy 96 89]);
      %flag=1;
 end
- 
+ title('finished');
 figure(1);
 plot(ballpos(:,1), ballpos(:,2),'.-',...
     ballpos(1,1), ballpos(1,2),'go', ballpos(end,1), ballpos(end,2),'rx');
@@ -114,10 +124,10 @@ ylabel('y, (px)');
 
 
 function [ym,yM,xm,xM] = setROI(centers)
-yR = 480; %height of image
-xR = 864; %width of image
+yR = 576;%480; %height of image
+xR = 720;%864; %width of image
 % centers = 327.3083  200.2870 for ball 1
-rROI = 30; %radius of ROI
+rROI =80; %radius of ROI
 ym = max(1,floor(centers(2) - rROI));
 yM = min(yR,ceil(centers(2) + rROI));
 xm = max(1,floor(centers(1) - rROI));
