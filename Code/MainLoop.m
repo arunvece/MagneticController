@@ -22,9 +22,11 @@ I_CMD_y = 0;
 error_xy = [0,0];
 parameters();   %Load model parameters
 I=step(obj);    %Create link between I (image file) and camera object (RAW image stream) 
+trigger = 0;
 
-%MAIN Loops
+%MAIN Loop
 while 1
+    tic = timerVal;
     tmp = rand;
     if tmp > limit %Break loop condition
         break
@@ -32,35 +34,37 @@ while 1
     %s = s + tmp;
     %estimator run first and call the DummyArduino or RealArduino
     %functions, Controller function required as well
+    
+    [G_x,G_y] = MagGrad(x,y,x_err,y_err,I_MES_1_x,I_MES_2_x,I_MES_2_y,I_MES_1_y);
+        
     function dx = motion(t,x)
-    dx = zeros(3,1);    % a column vector for equation set
-    dx(1) = x(2) * x(3);
-    dx(2) = -x(1) * x(3);
-    dx(3) = -0.51 * x(1) * x(2);
+    dx = zeros(2,1);      %a column vector for equation set
+    dx(1) = x(2);         %position
+    dx(2) = S1*x(2) +Gx;   %velocity
     options = odeset('RelTol',1e-4,'AbsTol',[1e-4 1e-4 1e-5]);
-    [~,X] = ode45(@motion,[t1 t2],[(centers(1,1)) 1 1],options);
+    [T,X] = ode45(@motion,[t1 t2],[(centers(1,1)) 1],options);
         
     function dy = motion1(t,y)
-    dy = zeros(3,1);    % a column vector for equation set
-    dy(1) = y(2) * y(3);
-    dy(2) = -y(1) * y(3);
-    dy(3) = -0.51 * y(1) * y(2);
+    dy = zeros(2,1);        %a column vector for equation set
+    dy(1) = y(2);           %position
+    dy(2) = S1*y(2) * Gy;   %velocity
     options = odeset('RelTol',1e-4,'AbsTol',[1e-4 1e-4 1e-5]);
-    [T,Y] = ode45(@motion,[t1 t2],[(centers(1,2)) 1 1],options);
+    [T,Y] = ode45(@motion,[t1 t2],[(centers(1,2)) 1],options);
+    
     %insert Contoller here
+    error_gain = Controller(error_xy);
     
     %insert DummyArduino here
     %RealArduino(I_CMD_x,I_CMD_y,s);
-    DummyArduino( I_CMD_x,I_CMD_y)
+    DummyArduino(I_CMD_x,I_CMD_y);
     %insert image capture here
-    if (timer expired)
-        ImageTrack(centers);
-        reset timer
+        
+    if (elapsedTime == 0.0100)  %run image program every 100 ms
+        centers = ImageTrack();
     end
-    
+   
     x_pos_inital = centers(1,1);    %scale pixels to cm? May not be needed since the pixels may be good 
-    y_pos+inital = centers(1,2);    %scale pixels t cm? May not be needed since the pixels may be good
+    y_pos_inital = centers(1,2);    %scale pixels t cm? May not be needed since the pixels may be good  
     
-    
-    
+    elapsedTime = toc(timerVal);
 end

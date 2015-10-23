@@ -20,10 +20,10 @@ minPulse = 1000e-6;
 maxPulse = 2000e-6;
 
 obj = imaq.VideoDevice('dcam',1,'F7_Y8_640x480_mode0'); %camera link and object 
-display('Connecting to Arduino');
-a=arduino('/dev/ttyS101','Mega2560'); %create object for controller
+%display('Connecting to Arduino');
+%a=arduino('/dev/ttyS101','Mega2560'); %create object for controller
 %controller; not needed for dummy testing
-s = servo(a, 'D4', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse); %connect PWN control wire to digital pin #4.
+%s = servo(a, 'D4', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse); %connect PWN control wire to digital pin #4.
 
 numframes = 399;
 xyCMD = [400,400];

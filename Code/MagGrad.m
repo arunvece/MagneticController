@@ -1,4 +1,4 @@
-function MagGrad [G_x,G_y,I_CMD_1_x,I_CMD_2_x,I_CMD_2_y,I_CMD_1_y] = BGrad(x,y,x_err,y_err,I_MES_1_x,I_MES_2_x,I_MES_2_y,I_MES_1_y)
+function [G_x,G_y] = MagGrad(x,y,x_err,y_err,I_MES_1_x,I_MES_2_x,I_MES_2_y,I_MES_1_y)
 %#codegen
 %Model of Magnetix Fields
 N = 510; %number of coils
