@@ -1,4 +1,4 @@
-function [G_x,G_y] = MagGrad(x,y,x_err,y_err,I_MES_1_x,I_MES_2_x,I_MES_2_y,I_MES_1_y)
+function [G_x,G_y] = MagGrad(x,y,I_MES_1_x,I_MES_2_x,I_MES_2_y,I_MES_1_y)
 %#codegen
 %Model of Magnetix Fields
 N = 510; %number of coils
@@ -53,10 +53,10 @@ G_y = ((db_y_1+db_y_2)/W);
 %I_CMD_1 = x_err*(db_x_1*((R^2)+(x1^2))^(2.5))/(-3*x1*u_o*N*(R^2));
 %I_CMD_2 = y_err*(db_x_2*((R^2)+(x2^2))^(2.5))/(-3*x2*u_o*N*(R^2));
 
-I_CMD_1_x = x_err*(-17);
-I_CMD_2_x = x_err*(-17);
-I_CMD_1_y = y_err*(-17);
-I_CMD_2_y = y_err*(-17);
+%I_CMD_1_x = x_err*(-17);
+%I_CMD_2_x = x_err*(-17);
+%I_CMD_1_y = y_err*(-17);
+%I_CMD_2_y = y_err*(-17);
 
 
 %I_CMD = -5*I_set;
