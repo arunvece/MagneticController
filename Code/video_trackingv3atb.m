@@ -24,6 +24,7 @@ numframes = vidBead.NumberOfFrames;
 %obj = imaq.VideoDevice('dcam',1,'F7_Y8_640x480_mode0'); %camera link and object 
 %a = arduino('/dev/ttyACM0','Mega2560'); %Ccreate object link for arduino
 %controller; not needed for dummy testing
+% ln -s /dev/ttyACM0 /dev/ttyS101 - CMD used to make link
 
 %numframes = 50;
 xyCMD = [400,400];

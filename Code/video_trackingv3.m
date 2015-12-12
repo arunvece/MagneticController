@@ -5,6 +5,14 @@
 % blob detector, tuned to find circles of a given size, may work)
 % I'm not finding the end of the video correctly
 
+%D7 - Coil 1 - x1
+%D8 - Coil 2 (Top)
+%D9 - Coil 3 - y1
+%D10 -Coil 4 (Bottom)
+%D11 - Coil 5 - x2
+%D12 - Coil 6 - y2
+
+
 addpath('../Test Videos/')
 format compact
 close all
@@ -22,8 +30,13 @@ maxPulse = 2000e-6;
 obj = imaq.VideoDevice('dcam',1,'F7_Y8_640x480_mode0'); %camera link and object 
 display('Connecting to Arduino');
 a=arduino('/dev/ttyS101','Mega2560'); %create object for controller
+% ln -s /dev/ttyACM0 /dev/ttyS101 - CMD used to make link
 %controller; not needed for dummy testing
-s = servo(a, 'D4', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse); %connect PWN control wire to digital pin #4.
+
+s = servo(a, 'D7', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse); %PWM - Coil 1
+s1 = servo(a, 'D9', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse);%Pwm - COil 3
+s2 = servo(a, 'D11', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse);%Pwm - COil 5
+s3 = servo(a, 'D12', 'MinPulseDuration', minPulse, 'MaxPulseDuration', maxPulse);%Pwm - COil 6
 
 numframes = 399;
 xyCMD = [400,400];
