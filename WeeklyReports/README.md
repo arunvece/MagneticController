@@ -1,1 +1,0 @@
-Place your weekly reports in here.  Please make a separate folder for each student
