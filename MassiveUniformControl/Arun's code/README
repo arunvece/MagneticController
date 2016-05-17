@@ -1,0 +1,12 @@
+This folder has MATLAB files and support files to simulate different worlds filled with particles and algorithms that can converge the particles.
+Below are the files and subfolder defanitions
+data	- Consists .dat files that log the results of collectingByAPSPv1.m for different settings.	
+blockMaps.m	- MATLAB function that is called to access small maps with map number
+collectingByAPSPv1.m	- Main program that takes map umber, algorithm number as inputs to generate the number of steps and the step sequence.
+leafBW.png	- Map 502
+leafBWar500.png	- not required 
+leafBWar5000.png	- not required
+leafBWbig.png	-map 6000
+leafBWmedium.png - map 501
+leafBWsmall.png	- map 500
+runBatchCollecting.m - program set to run experiments on collectingByAPSPV1. Please run by section.  
